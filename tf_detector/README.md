@@ -1,4 +1,4 @@
-# Instructions 
+# Setup Instructions 
 
 1. Follow environment setup and installations in:
 
@@ -10,7 +10,7 @@ It's important to create a Python environment and `activate` it whenever we use 
 source ~/tflite/bin/activate
 ```
 
-2. See object detector usage info at (tf_INFO.md)[./tf_INFO.md]
+2. See object detector usage info at [tf_INFO.md](tf_INFO.md)
 
 # Run the OD on images
 
