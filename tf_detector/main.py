@@ -1,5 +1,3 @@
-from object_detector import ObjectDetector
-
 import cv2
 import object_detector as od
 import utils
