@@ -5,6 +5,7 @@ import numpy as np
 from typing import Dict, List, NamedTuple
 from object_detector import Rect
 
+
 class DangerArea(NamedTuple):
   """Danger area coordinates."""
   bottom_left: List[float]
@@ -12,17 +13,23 @@ class DangerArea(NamedTuple):
   top_right: List[float]
   bottom_right: List[float]
 
-
 _RED = (0, 0, 255)
+_GREEN = (0, 255, 0)
+# TODO: define all danger areas
+_AREA_1 = DangerArea(
+        bottom_left=[960-60*3,1080],
+        top_left=[960-50*3,1080-80*3],
+        top_right=[960+50*3,1080-80*3],
+        bottom_right=[960+60*3,1080])
 
 
-class LineDrawer():
-
-    def draw_line(self, input_image: np.ndarray) -> np.ndarray:
-        
-        image = input_image
-        
-        return image
+# TODO paint all danger areas
+def draw_scooter_line(image: np.ndarray, areas: List) -> np.ndarray:
+    for area in areas:
+        pts = np.array([area.bottom_left, area.top_left, area.top_right, area.bottom_right], np.int32)
+        pts = pts.reshape((-1,1,2))
+        cv.polylines(image,[pts],True,(0,255,255))
+    return image
 
 def find_intersections(rect:Rect, area:DangerArea):
     """Looks for rectangle bottom coordinates intersections in Danger Area.
@@ -51,13 +58,11 @@ def find_intersections(rect:Rect, area:DangerArea):
     return False
 
 
-def test_boxes(boxes:List, image):
-
+def draw_boxes(boxes:List, image):
     for box in boxes:
         start_point = box.left, box.top
         end_point = box.right, box.bottom
         cv.rectangle(image, start_point, end_point, _RED, 3)
-
     return image
 
 
@@ -66,38 +71,12 @@ def main():
     image = cv.imread(_IMAGE_FILE)
     # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
-    # img = np.zeros((100, 500, 3), np.uint8)
-    GREEN = (0, 255, 0)
-    p0, p1 = (100, 30), (400, 90)
-    def mouse(event, x, y, flags, param):
-        if flags == 1:
-            p1 = x, y
-            cv.displayOverlay('window', f'p1=({x}, {y})')
-            img[:] = 0
-            cv.line(img, p0, p1, GREEN, 10)
-            cv.imshow('window', img)
-    
-    img = np.zeros((100, 500, 3), np.uint8)
-    cv.line(img, p0, p1, GREEN, 10)
-
-    cv.imshow('window', img)
-    cv.setMouseCallback('window', mouse)
-
     # MIDDLE LINE COORDS
     top, bot = (960, 0), (960, 1080)
+    cv.line(image, top, bot, _GREEN, 3)
 
-    cv.line(image, top, bot, GREEN, 3)
-
-    # Draw area 1
-    _AREA_1 = DangerArea(
-            bottom_left=[960-60*3,1080],
-            top_left=[960-50*3,1080-80*3],
-            top_right=[960+50*3,1080-80*3],
-            bottom_right=[960+60*3,1080])
-
-    pts = np.array([_AREA_1.bottom_left, _AREA_1.top_left, _AREA_1.top_right, _AREA_1.bottom_right], np.int32)
-    pts = pts.reshape((-1,1,2))
-    cv.polylines(image,[pts],True,(0,255,255))
+    # Draw danger zones in the scooter line 
+    image = draw_scooter_line(image, [_AREA_1])
         
     # Test box
     rect_0 = Rect(left = 500, top = 1, right = 800, bottom = 1000)
@@ -105,7 +84,7 @@ def main():
     rect_2 = Rect(left = 600, top = 150, right = 900, bottom = 800)
     rect_3 = Rect(left = 1500, top = 400, right = 1900, bottom = 1000)
     boxes = [rect_0, rect_1, rect_2, rect_3]
-    image = test_boxes(boxes, image)
+    image = draw_boxes(boxes, image)
 
     find_intersections(rect_3, _AREA_1)
 
@@ -123,6 +102,6 @@ if __name__ == '__main__':
 
 
 # Intersection steps
-# 0. GET DANGER AREAS CORRDS. MAKE CALCS
-# 1. GET INTERSECTION objects with bottom areas and go up
+# ~ 0. GET DANGER AREAS CORRDS. MAKE CALCS~
+# ~ 1. GET INTERSECTION objects with bottom areas and go up~
 # 2. POST ALERTS
