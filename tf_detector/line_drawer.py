@@ -1,8 +1,6 @@
-from email.mime import image
-from re import A
 import cv2 as cv
 import numpy as np
-from typing import Dict, List, NamedTuple
+from typing import List, NamedTuple
 from object_detector import Rect
 
 
