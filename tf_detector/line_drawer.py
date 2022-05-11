@@ -1,6 +1,18 @@
 from email.mime import image
+from re import A
 import cv2 as cv
 import numpy as np
+from typing import Dict, List, NamedTuple
+
+class DangerArea(NamedTuple):
+  """Danger area coordinates."""
+  bottom_left: List[float]
+  top_left: List[float]
+  top_right: List[float]
+  bottom_right: List[float]
+
+
+_RED = (0, 0, 255)
 
 
 class LineDrawer():
@@ -40,13 +52,23 @@ def main():
     cv.line(image, top, bot, GREEN, 3)
 
     # Draw area 1
-    pts = np.array([[960-60*3,1080],[960-50*3,1080-80*3],[960+50*3,1080-80*3],[960+60*3,1080]], np.int32)
+    _AREA_1 = DangerArea(
+            bottom_left=[960-60*3,1080],
+            top_left=[960-50*3,1080-80*3],
+            top_right=[960+50*3,1080-80*3],
+            bottom_right=[960+60*3,1080])
+
+    pts = np.array([_AREA_1.bottom_left, _AREA_1.top_left, _AREA_1.top_right, _AREA_1.bottom_right], np.int32)
     pts = pts.reshape((-1,1,2))
     cv.polylines(image,[pts],True,(0,255,255))
         
+    # Test box
+    rect = [(500, 1), (800, 1000)]
+    cv.rectangle(image, rect[0], rect[1], _RED , 3)
+
     # Resize image for fitting in the screen
     #image = cv.resize(image, (960, 540))                
-    image = cv.resize(image, (1440, 810))                
+    # image = cv.resize(image, (1440, 810))                
     cv.imshow('scooter line', image)
     cv.waitKey(0)
     cv.destroyAllWindows()
