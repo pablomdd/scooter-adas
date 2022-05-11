@@ -25,6 +25,14 @@ class LineDrawer():
         return image
 
 def find_intersections(rect:Rect, area:DangerArea):
+    """Looks for rectangle bottom coordinates intersections in Danger Area.
+    Args:
+        rect: Rect 
+        area: DangerArea.
+
+    Returns:
+        boolean 
+    """
     box_bot_left = rect.left, rect.bottom
     box_bot_right = rect.right, rect.bottom
     
@@ -32,15 +40,15 @@ def find_intersections(rect:Rect, area:DangerArea):
     if box_bot_left[0] > area.bottom_left[0] and box_bot_left[0] < area.bottom_right[0]:
         if box_bot_left[1] > area.top_left[1] and box_bot_left[1] < area.bottom_left[1]:
             print("box bot left inside area")
-            return
+            return True
     # Compare rectangle bottom right
     elif box_bot_right[0] > area.bottom_left[0] and box_bot_right[0] < area.bottom_right[0]:
         if box_bot_right[1] > area.top_left[1] and box_bot_right[1] < area.bottom_left[1]:
             print("box bot right inside area")
-            return
+            return True
     
     print("no intersection found")
-    return
+    return False
 
 
 def test_boxes(boxes:List, image):
