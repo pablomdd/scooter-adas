@@ -1,9 +1,10 @@
 import cv2
 import object_detector as od
+from line_drawer import find_intersections
 import utils
 
 _MODEL_FILE = 'efficientdet_lite0.tflite'
-_IMAGE_FILE = 'test_imgs/9.png'
+_IMAGE_FILE = 'test_imgs/8.png'
 _ALLOW_LIST = ['person', 'car']
 # _BBOX_IOU_THRESHOLD = 0.9
 # _DENY_LIST = ['book']
