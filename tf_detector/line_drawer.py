@@ -103,10 +103,11 @@ def main():
     rect_0 = Rect(left = 500, top = 1, right = 800, bottom = 1000)
     rect_1 = Rect(left = 1000, top = 200, right = 1200, bottom = 900)
     rect_2 = Rect(left = 600, top = 150, right = 900, bottom = 800)
-    boxes = [rect_0, rect_1, rect_2]
+    rect_3 = Rect(left = 1500, top = 400, right = 1900, bottom = 1000)
+    boxes = [rect_0, rect_1, rect_2, rect_3]
     image = test_boxes(boxes, image)
 
-    find_intersections(rect_1, _AREA_1)
+    find_intersections(rect_3, _AREA_1)
 
     # Resize image for fitting in the screen
     #image = cv.resize(image, (960, 540))                
