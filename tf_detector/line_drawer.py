@@ -14,11 +14,37 @@ class DangerArea(NamedTuple):
 _RED = (0, 0, 255)
 _GREEN = (0, 255, 0)
 # TODO: define all danger areas
+"""Danger Areas definition
+AREA_1 is the closest to the scooter, thus, the most dangerous if an object detected.
+
+- AREA_1 [0 or 2-3] meters: Goes from the bottom, the first part of the bottom image that the camera can see.
+    For the testing camera it is 1.93m~=2m up to 3m. 
+    Our scooter prroved it can brake from 15km/h to 0 in around 3m. 
+- AREA_2 (3-5] meters 
+- AREA_3 (5-9] meters 
+"""
+
 _AREA_1 = DangerArea(
         bottom_left=[960-60*3,1080],
         top_left=[960-50*3,1080-80*3],
         top_right=[960+50*3,1080-80*3],
         bottom_right=[960+60*3,1080])
+
+X3 = 834
+
+_AREA_2 = DangerArea(
+        bottom_left=[960-50*3,1080-80*3],
+        top_left=[X3,1080-80*5-30],
+        top_right=[960+(960-X3),1080-80*5-30],
+        bottom_right=[960+50*3,1080-80*3])
+
+X4 = 850
+
+_AREA_3 = DangerArea(
+        bottom_left=[X3,1080-80*5-30],
+        top_left=[X4,520],
+        top_right=[960+(960-X4),520],
+        bottom_right=[960+(960-X3),1080-80*5-30])
 
 
 # TODO paint all danger areas
@@ -74,8 +100,10 @@ def main():
     cv.line(image, top, bot, _GREEN, 3)
 
     # Draw danger zones in the scooter line 
-    image = draw_scooter_line(image, [_AREA_1])
-        
+    danger_areas = [_AREA_1, _AREA_2, _AREA_3]
+    image = draw_scooter_line(image, danger_areas)
+
+    find_intersections(rect_3, _AREA_1)
     # Test box
     rect_0 = Rect(left = 500, top = 1, right = 800, bottom = 1000)
     rect_1 = Rect(left = 1000, top = 200, right = 1200, bottom = 900)
@@ -84,7 +112,6 @@ def main():
     boxes = [rect_0, rect_1, rect_2, rect_3]
     image = draw_boxes(boxes, image)
 
-    find_intersections(rect_3, _AREA_1)
 
     # Resize image for fitting in the screen
     #image = cv.resize(image, (960, 540))                
