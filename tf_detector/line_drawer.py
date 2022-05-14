@@ -12,8 +12,10 @@ class DangerArea(NamedTuple):
   bottom_right: List[float]
 
 _RED = (0, 0, 255)
+_YELLOW = (0,255,255)
 _GREEN = (0, 255, 0)
-# TODO: define all danger areas
+
+
 """Danger Areas definition
 AREA_1 is the closest to the scooter, thus, the most dangerous if an object detected.
 
@@ -47,37 +49,50 @@ _AREA_3 = DangerArea(
         bottom_right=[960+(960-X3),1080-80*5-30])
 
 
-# TODO paint all danger areas
+
+_AREA_COLORS = {
+    1: _GREEN,
+    2: _YELLOW,
+    3: _RED
+}
+
 def draw_scooter_line(image: np.ndarray, areas: List) -> np.ndarray:
-    for area in areas:
+    for idx, area in enumerate(areas):
         pts = np.array([area.bottom_left, area.top_left, area.top_right, area.bottom_right], np.int32)
         pts = pts.reshape((-1,1,2))
-        cv.polylines(image,[pts],True,(0,255,255))
+        cv.polylines(image,[pts],True, _AREA_COLORS[idx+1], 3)
     return image
 
-def find_intersections(rect:Rect, area:DangerArea):
-    """Looks for rectangle bottom coordinates intersections in Danger Area.
+def find_intersections(rect:Rect, areas:List[DangerArea], box_idx=-1):
+    """Looks for rectangle bottom coordinates intersections in the closest Danger Area for one box.
+    
+    The closest Danger Area is 1, then 2, and 3. 
+    
+    When a intersection is identified, the function returns and does not goes to the rest of the areas.
+    
     Args:
-        rect: Rect 
-        area: DangerArea.
+        rect: Rect. 
+        area: List[DangerArea].
+        box_idx: optional argument for debugging.
 
     Returns:
         boolean 
     """
     box_bot_left = rect.left, rect.bottom
     box_bot_right = rect.right, rect.bottom
-    
-    # Compare rectangle bottom left 
-    if box_bot_left[0] > area.bottom_left[0] and box_bot_left[0] < area.bottom_right[0]:
-        if box_bot_left[1] > area.top_left[1] and box_bot_left[1] < area.bottom_left[1]:
-            print("box bot left inside area")
-            return True
-    # Compare rectangle bottom right
-    elif box_bot_right[0] > area.bottom_left[0] and box_bot_right[0] < area.bottom_right[0]:
-        if box_bot_right[1] > area.top_left[1] and box_bot_right[1] < area.bottom_left[1]:
-            print("box bot right inside area")
-            return True
-    
+
+    for i, area in enumerate(areas):    
+        # Compare rectangle bottom left 
+        if box_bot_left[0] > area.bottom_left[0] and box_bot_left[0] < area.bottom_right[0]:
+            if box_bot_left[1] > area.top_left[1] and box_bot_left[1] < area.bottom_left[1]:
+                print("box", box_idx, "bot left inside area", i + 1)
+                return True
+        # Compare rectangle bottom right
+        elif box_bot_right[0] > area.bottom_left[0] and box_bot_right[0] < area.bottom_right[0]:
+            if box_bot_right[1] > area.top_left[1] and box_bot_right[1] < area.bottom_left[1]:
+                print("box", box_idx, "bot right inside area", i + 1)
+                return True
+        
     print("no intersection found")
     return False
 
@@ -103,7 +118,6 @@ def main():
     danger_areas = [_AREA_1, _AREA_2, _AREA_3]
     image = draw_scooter_line(image, danger_areas)
 
-    find_intersections(rect_3, _AREA_1)
     # Test box
     rect_0 = Rect(left = 500, top = 1, right = 800, bottom = 1000)
     rect_1 = Rect(left = 1000, top = 200, right = 1200, bottom = 900)
@@ -112,6 +126,8 @@ def main():
     boxes = [rect_0, rect_1, rect_2, rect_3]
     image = draw_boxes(boxes, image)
 
+    for idx, box in enumerate(boxes):
+        find_intersections(box, danger_areas, idx)
 
     # Resize image for fitting in the screen
     #image = cv.resize(image, (960, 540))                
