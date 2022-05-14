@@ -11,10 +11,14 @@ class DangerArea(NamedTuple):
   top_right: List[float]
   bottom_right: List[float]
 
+# Global util constants
 _RED = (0, 0, 255)
 _YELLOW = (0,255,255)
 _GREEN = (0, 255, 0)
-
+_MARGIN = 10  # pixels
+_ROW_SIZE = 10  # pixels
+_FONT_SIZE = 1
+_FONT_THICKNESS = 2
 
 """Danger Areas definition
 AREA_1 is the closest to the scooter, thus, the most dangerous if an object detected.
@@ -98,9 +102,15 @@ def find_intersections(rect:Rect, areas:List[DangerArea], box_idx=-1):
 
 
 def draw_boxes(boxes:List, image):
-    for box in boxes:
+
+    for idx, box in enumerate(boxes):
         start_point = box.left, box.top
         end_point = box.right, box.bottom
+        result_text = "Box " + str(idx)
+        text_location = (_MARGIN + box.left,
+                        _MARGIN + _ROW_SIZE + box.top)
+        cv.putText(image, result_text, text_location, cv.FONT_HERSHEY_PLAIN,
+                _FONT_SIZE, _RED, _FONT_THICKNESS)
         cv.rectangle(image, start_point, end_point, _RED, 3)
     return image
 
