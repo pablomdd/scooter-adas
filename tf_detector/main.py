@@ -1,4 +1,13 @@
 import sys
+import argparse
+# Initialize parser
+parser = argparse.ArgumentParser()
+ 
+# Adding optional argument
+parser.add_argument("-img", "--Image", help = "Image path to run detection")
+parser.add_argument("-s", "--Speed", help = "Scooter speed in Km/h")
+ 
+
 import cv2
 import object_detector as od
 # from line_drawer import find_intersections
@@ -34,10 +43,12 @@ def get_bounding_boxes(detections):
     """
     return [detection.bounding_box for detection in detections]
 
-def run_prediction(image):
+def run_prediction(image, speed=0):
     option = od.ObjectDetectorOptions(label_allow_list=_ALLOW_LIST, max_results=_MAX_RESULTS)
     detector = od.ObjectDetector(_MODEL_FILE, options=option)
     detections = detector.detect(image)
+    # Get boxes locally from detections raw list
+    # print(get_bounding_boxes(detections))
 
     # Get image and boxes from drawing boxes utility
     image, boxes = utils.visualize(image, detections)
@@ -52,40 +63,48 @@ def run_prediction(image):
             break
     
     # Get alert based on obstacles
-    speed = 20
     action = decision_making.make(danger_area, speed)
     print(action)
 
-    # TODO: Emit alert
-
-
+    # Resize to fit in device screen. Does not affect detection.
     image = cv2.resize(image, (1440, 810))                
     cv2.imshow('object_detector', image)
-    
-    # Get boxes locally from detections raw list
-    # print(get_bounding_boxes(detections))
     
     while True:
         if cv2.waitKey(1) == 27:
             break
         cv2.imshow('object_detector', image)
-
     cv2.destroyAllWindows()
+
+    return image, action
     
 
 def main():
+    args = parser.parse_args()
     img_route = ""
-    if(len(sys.argv) > 1):
-        img_route = sys.argv[1]
-        print(str(img_route))
+    speed = 0.0
     
+    if args.Image:
+        img_route = args.Image
+
+    if args.Speed:
+        speed = float(args.Speed)
+
+    # if(len(sys.argv) > 1):
+    #     img_route = sys.argv[1]
+    #     print(str(img_route))
+    
+    print(str(img_route))
+    print(speed)
+
     if (img_route):
         image = cv2.imread(img_route)
     else: 
         image = cv2.imread(_IMAGE_FILE)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    run_prediction(image)
-    return
+    _, action = run_prediction(image, speed)
+    print(action)
+    return action
 
 if __name__ == '__main__':
     main()
