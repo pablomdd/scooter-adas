@@ -44,28 +44,53 @@ def get_bounding_boxes(detections):
     return [detection.bounding_box for detection in detections]
 
 def run_prediction(image, speed=0):
+    """Receives and image and speed from outside and returns a preventive action.
+    
+    The proccess is as following:
+
+        1. Runs TensorFlow EfficientDet to recognize people and cars.
+    
+        2. Detections go through findintersections() and it determines if any of them 
+        it is an actual obstacle that is on the scoorter\'s line.
+    
+        3. If there is an obtacle, run decisionmaking.make() to emit determine preventive
+        action based on the location of the obstacle and scooter's speed.
+    
+        4. Finally, the action, if any, is returned.
+
+    Args:
+        image: in RGB format.
+        speed: in Km/h.
+
+    Return:
+        image: with scooter\'s line and detections.
+        action (str): preventive action if an obtacle was detected. Empty string if not ("").
+    """
+    
+    # STEP 1. Run object detector.
     option = od.ObjectDetectorOptions(label_allow_list=_ALLOW_LIST, max_results=_MAX_RESULTS)
     detector = od.ObjectDetector(_MODEL_FILE, options=option)
     detections = detector.detect(image)
-    # Get boxes locally from detections raw list
-    # print(get_bounding_boxes(detections))
+        # Get boxes locally from detections raw list
+        # print(get_bounding_boxes(detections))
 
     # Get image and boxes from drawing boxes utility
     image, boxes = utils.visualize(image, detections)
     print(boxes)
     image = line_drawer.draw_scooter_line(image)
 
-    # Detect obstacle on Danger Areas
+    # STEP 2. Detect obstacles on Danger Areas.
     obstacle, danger_area = False, 0
     for idx, box in enumerate(boxes):
         obstacle, danger_area = line_drawer.find_intersections(rect=box, box_idx=idx)
         if obstacle:
             break
     
-    # Get alert based on obstacles
+    # STEP 3. Get action based on obstacles
     action = decision_making.make(danger_area, speed)
     print(action)
 
+    # Print image on screen. Not necessary when in production mode.
     # Resize to fit in device screen. Does not affect detection.
     image = cv2.resize(image, (1440, 810))                
     cv2.imshow('object_detector', image)
@@ -76,6 +101,7 @@ def run_prediction(image, speed=0):
         cv2.imshow('object_detector', image)
     cv2.destroyAllWindows()
 
+    # STEP 3. Emit action.
     return image, action
     
 
