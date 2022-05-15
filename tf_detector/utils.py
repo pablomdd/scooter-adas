@@ -22,8 +22,8 @@ from object_detector import Detection
 _MARGIN = 10  # pixels
 _ROW_SIZE = 10  # pixels
 _FONT_SIZE = 1
-_FONT_THICKNESS = 1
-_TEXT_COLOR = (0, 0, 255)  # red
+_FONT_THICKNESS = 2
+_TEXT_COLOR = (255, 0, 0) 
 
 
 def visualize(
@@ -42,7 +42,7 @@ def visualize(
   """
   bounding_boxes = []
 
-  for detection in detections:
+  for idx, detection in enumerate(detections):
     # Save bounding_box for later
     bounding_boxes.append(detection.bounding_box)
     
@@ -55,7 +55,7 @@ def visualize(
     category = detection.categories[0]
     class_name = category.label
     probability = round(category.score, 2)
-    result_text = class_name + ' (' + str(probability) + ')'
+    result_text = 'box-' + str(idx) + ' ' + class_name + ' (' + str(probability) + ')'
     text_location = (_MARGIN + detection.bounding_box.left,
                      _MARGIN + _ROW_SIZE + detection.bounding_box.top)
     cv2.putText(image, result_text, text_location, cv2.FONT_HERSHEY_PLAIN,

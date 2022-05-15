@@ -60,14 +60,16 @@ _AREA_COLORS = {
     3: _RED
 }
 
-def draw_scooter_line(image: np.ndarray, areas: List) -> np.ndarray:
+_DANGER_AREAS = [_AREA_1, _AREA_2, _AREA_3]
+
+def draw_scooter_line(image: np.ndarray, areas: List=_DANGER_AREAS) -> np.ndarray:
     for idx, area in enumerate(areas):
         pts = np.array([area.bottom_left, area.top_left, area.top_right, area.bottom_right], np.int32)
         pts = pts.reshape((-1,1,2))
         cv.polylines(image,[pts],True, _AREA_COLORS[idx+1], 3)
     return image
 
-def find_intersections(rect:Rect, areas:List[DangerArea], box_idx=-1):
+def find_intersections(rect:Rect, areas:List[DangerArea]=_DANGER_AREAS, box_idx=-1):
     """Looks for rectangle bottom coordinates intersections in the closest Danger Area for one box.
     
     The closest Danger Area is 1, then 2, and 3. 
@@ -80,7 +82,8 @@ def find_intersections(rect:Rect, areas:List[DangerArea], box_idx=-1):
         box_idx: optional argument for debugging.
 
     Returns:
-        boolean 
+        result: boolean - if an intersection is detected.
+        area: int - number of the area (1-3) in which object was detected. Zero (0) if none object.
     """
     box_bot_left = rect.left, rect.bottom
     box_bot_right = rect.right, rect.bottom
@@ -90,15 +93,15 @@ def find_intersections(rect:Rect, areas:List[DangerArea], box_idx=-1):
         if box_bot_left[0] > area.bottom_left[0] and box_bot_left[0] < area.bottom_right[0]:
             if box_bot_left[1] > area.top_left[1] and box_bot_left[1] < area.bottom_left[1]:
                 print("box", box_idx, "bot left inside area", i + 1)
-                return True
+                return True, i+1
         # Compare rectangle bottom right
         elif box_bot_right[0] > area.bottom_left[0] and box_bot_right[0] < area.bottom_right[0]:
             if box_bot_right[1] > area.top_left[1] and box_bot_right[1] < area.bottom_left[1]:
                 print("box", box_idx, "bot right inside area", i + 1)
-                return True
+                return True, i+1
         
     print("no intersection found")
-    return False
+    return False, 0
 
 
 def draw_boxes(boxes:List, image):
@@ -125,8 +128,7 @@ def main():
     cv.line(image, top, bot, _GREEN, 3)
 
     # Draw danger zones in the scooter line 
-    danger_areas = [_AREA_1, _AREA_2, _AREA_3]
-    image = draw_scooter_line(image, danger_areas)
+    image = draw_scooter_line(image, _DANGER_AREAS)
 
     # Test box
     rect_0 = Rect(left = 500, top = 1, right = 800, bottom = 1000)
@@ -137,7 +139,7 @@ def main():
     image = draw_boxes(boxes, image)
 
     for idx, box in enumerate(boxes):
-        find_intersections(box, danger_areas, idx)
+        find_intersections(box, _DANGER_AREAS, idx)
 
     # Resize image for fitting in the screen
     #image = cv.resize(image, (960, 540))                
