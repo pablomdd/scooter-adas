@@ -3,10 +3,11 @@ import cv2
 import object_detector as od
 # from line_drawer import find_intersections
 import line_drawer
+import decision_making
 import utils
 
 _MODEL_FILE = 'efficientdet_lite0.tflite'
-_IMAGE_FILE = 'test_imgs/7.png'
+_IMAGE_FILE = 'test_imgs/1.png'
 _ALLOW_LIST = ['person', 'car']
 # _BBOX_IOU_THRESHOLD = 0.9
 # _DENY_LIST = ['book']
@@ -47,7 +48,13 @@ def run_prediction(image):
         if obstacle:
             break
     
-    # TODO: Emit alerts based on obstacles
+    # Get alert based on obstacles
+    speed = 20
+    action = decision_making.make(danger_area, speed)
+    print(action)
+
+    # TODO: Emit alert
+
 
     image = cv2.resize(image, (1440, 810))                
     cv2.imshow('object_detector', image)
