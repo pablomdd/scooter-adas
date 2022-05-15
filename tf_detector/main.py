@@ -1,4 +1,4 @@
-from re import L
+import sys
 import cv2
 import object_detector as od
 # from line_drawer import find_intersections
@@ -7,12 +7,15 @@ import decision_making
 import utils
 
 _MODEL_FILE = 'efficientdet_lite0.tflite'
+# _IMAGE_FILE = 'test_imgs/1.png'
 _IMAGE_FILE = 'test_imgs/1.png'
+# _IMAGE_FILE = 'line_imgs/11m.png'
+
 _ALLOW_LIST = ['person', 'car']
 # _BBOX_IOU_THRESHOLD = 0.9
 # _DENY_LIST = ['book']
 # _SCORE_THRESHOLD = 0.3
-# _MAX_RESULTS = 3
+_MAX_RESULTS = 10
 
 def get_bounding_boxes(detections):
     """ Gets an array of Rect (NamedTuple) of the bouding boxes.
@@ -32,7 +35,7 @@ def get_bounding_boxes(detections):
     return [detection.bounding_box for detection in detections]
 
 def run_prediction(image):
-    option = od.ObjectDetectorOptions(label_allow_list=_ALLOW_LIST)
+    option = od.ObjectDetectorOptions(label_allow_list=_ALLOW_LIST, max_results=_MAX_RESULTS)
     detector = od.ObjectDetector(_MODEL_FILE, options=option)
     detections = detector.detect(image)
 
@@ -71,11 +74,17 @@ def run_prediction(image):
     
 
 def main():
-    image = cv2.imread(_IMAGE_FILE)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-    run_prediction(image)
+    img_route = ""
+    if(len(sys.argv) > 1):
+        img_route = sys.argv[1]
+        print(str(img_route))
     
+    if (img_route):
+        image = cv2.imread(img_route)
+    else: 
+        image = cv2.imread(_IMAGE_FILE)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    run_prediction(image)
     return
 
 if __name__ == '__main__':
