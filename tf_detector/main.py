@@ -87,7 +87,9 @@ def run_prediction(image, speed=0):
             break
     
     # STEP 3. Get action based on obstacles
-    action = decision_making.make(danger_area, speed)
+    action = ""
+    if obstacle:
+        action = decision_making.make(danger_area, speed)
     print(action)
 
     # Print image on screen. Not necessary when in production mode.
