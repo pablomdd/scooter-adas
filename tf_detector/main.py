@@ -17,7 +17,7 @@ import utils
 
 _MODEL_FILE = 'efficientdet_lite0.tflite'
 # _IMAGE_FILE = 'test_imgs/1.png'
-_IMAGE_FILE = 'test_imgs/1.png'
+_IMAGE_FILE = 'test_imgs/2.png'
 # _IMAGE_FILE = 'line_imgs/11m.png'
 
 _ALLOW_LIST = ['person', 'car']
@@ -76,7 +76,7 @@ def run_prediction(image, speed=0):
 
     # Get image and boxes from drawing boxes utility
     image, boxes = utils.visualize(image, detections)
-    print(boxes)
+    # print(boxes)
     image = line_drawer.draw_scooter_line(image)
 
     # STEP 2. Detect obstacles on Danger Areas.
@@ -90,22 +90,29 @@ def run_prediction(image, speed=0):
     action = ""
     if obstacle:
         action = decision_making.make(danger_area, speed)
-    print(action)
+    # print(action)
 
     # Print image on screen. Not necessary when in production mode.
     # Resize to fit in device screen. Does not affect detection.
     image = cv2.resize(image, (1440, 810))                
-    cv2.imshow('object_detector', image)
+    # cv2.imshow('object_detector', image)
     
-    while True:
-        if cv2.waitKey(1) == 27:
-            break
-        cv2.imshow('object_detector', image)
-    cv2.destroyAllWindows()
+    # while True:
+    #     if cv2.waitKey(1) == 27:
+    #         break
+    #     cv2.imshow('object_detector', image)
+    # cv2.destroyAllWindows()
 
+    cv2.imwrite("sacOutputImg.png", image)
     # STEP 3. Emit action.
-    return image, action
+    return action, image
     
+def predict(img_route = 'test_imgs/1.png', speed=0.0):
+    image = cv2.imread(img_route)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    action, img_processed = run_prediction(image, speed)
+    return (action, img_processed.tolist())
+
 
 def main():
     args = parser.parse_args()
@@ -122,17 +129,17 @@ def main():
     #     img_route = sys.argv[1]
     #     print(str(img_route))
     
-    print(str(img_route))
-    print(speed)
+    # print(str(img_route))
+    # print(speed)
 
     if (img_route):
         image = cv2.imread(img_route)
     else: 
         image = cv2.imread(_IMAGE_FILE)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    _, action = run_prediction(image, speed)
-    print(action)
-    return action
+    action, img_processed = run_prediction(image, speed)
+    # print(action)
+    return (action, img_processed.tolist())
 
 if __name__ == '__main__':
     main()
