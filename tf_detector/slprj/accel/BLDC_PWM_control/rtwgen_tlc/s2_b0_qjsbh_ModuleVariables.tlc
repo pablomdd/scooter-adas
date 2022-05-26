@@ -1,6 +1,0 @@
-%implements s2_b0_qjsbh_ModuleVariables "C"
-
-%function ModuleVariables(block) Output
-
-static real_T tmp[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-%endfunction

@@ -8,8 +8,12 @@ if count(py.sys.path,sacPath) == 0
     insert(py.sys.path,int32(0),sacPath);
 end
 %% Run python script
-img_route = "test_imgs/20.png"
-sacSpeed = 20 %km/h
+img_route = "test_imgs/25.png"
+sacSpeed = 8 %km/h
+r = 0.2159; %m
+sacSpeedRpm = sacSpeed / (r*0.1885)
+assignin('base','sacSpeedRpm', sacSpeedRpm);
+
 pyOut = py.main.predict( ...
     pyargs('img_route', img_route, ...
             'speed', sacSpeed));
@@ -25,10 +29,13 @@ if action == "down15"
     sacOutputSpeedRpm = 368.59; %rpm
 elseif action == "down10"
     % 10 km/h
-    sacOutputSpeedRpm = 275.42; %rpm
-else 
+    sacOutputSpeedRpm = 245.72; %rpm
+elseif action == "down5" 
     % 5 km/h
     sacOutputSpeedRpm = 122.86; %rpm
+else 
+    % 0 km/h
+    sacOutputSpeedRpm = 0; %rpm
 end
 % Save rpm speed programatically in the workspace
 assignin('base','sacOutputSpeedRpm', sacOutputSpeedRpm)
