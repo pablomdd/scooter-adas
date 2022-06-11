@@ -1,4 +1,4 @@
-%implements s2_b0_a4mqh_ModuleVariables "C"
+%implements s2_b0_jlbli_ModuleVariables "C"
 
 %function ModuleVariables(block) Output
 
