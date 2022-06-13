@@ -8,8 +8,8 @@ if count(py.sys.path,sacPath) == 0
     insert(py.sys.path,int32(0),sacPath);
 end
 %% Run python script
-img_route = "test_imgs/25.png"
-sacSpeed = 20 %km/h
+img_route = "test_imgs/32.png"
+sacSpeed = 10 %km/h
 r = 0.2159; %m
 sacSpeedRpm = sacSpeed / (r*0.1885)
 assignin('base','sacSpeedRpm', sacSpeedRpm);
