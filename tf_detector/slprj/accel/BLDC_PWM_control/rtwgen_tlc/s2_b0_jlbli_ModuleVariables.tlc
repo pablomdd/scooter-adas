@@ -1,0 +1,6 @@
+%implements s2_b0_jlbli_ModuleVariables "C"
+
+%function ModuleVariables(block) Output
+
+static real_T tmp[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+%endfunction
