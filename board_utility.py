@@ -10,6 +10,15 @@ DEFAULT_BAUD_RATE = 115200
 DEFAULT_TIMEOUT = 0.1
 
 class Board:
+    """
+    Connects to a microcontroller via a Serial interface.
+
+    Specify the serial `port`, baud `rate` and `timeout`.
+
+    `debug_mode` prints each step the board takes. Default to True
+    
+    Note that board needs about 2 seconds to start writing/reading operations properly
+    """
     def __init__(self, port=DEFAULT_PORT, baud_rate=DEFAULT_BAUD_RATE, timeout=DEFAULT_TIMEOUT, debug_mode=True) -> None:
         self.port = port
         self.baud_rate = baud_rate
