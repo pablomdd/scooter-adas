@@ -94,7 +94,7 @@ def run_prediction(image, speed=0):
 
     # Print image on screen. Not necessary when in production mode.
     # Resize to fit in device screen. Does not affect detection.
-    image = cv2.resize(image, (1440, 810))                
+    # image = cv2.resize(image, (1440, 810))                
     # cv2.imshow('object_detector', image)
     
     # while True:
@@ -103,7 +103,7 @@ def run_prediction(image, speed=0):
     #     cv2.imshow('object_detector', image)
     # cv2.destroyAllWindows()
 
-    cv2.imwrite("sacOutputImg.png", image)
+    # cv2.imwrite("sacOutputImg.png", image)
     # STEP 3. Emit action.
     return action, image
     
