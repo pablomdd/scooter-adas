@@ -63,11 +63,15 @@ def main():
         print("Cannot initialize video capture")
 
     while cap.isOpened():
+        # TODO: Add sample time to run read speed from board
+        speed = float(board.read())
+
         ret, frame = cap.read()
         if not ret:
             print("Cannot receive frame")
             break
 
+        # TODO: Make resize pair-values into a array/dict of tupples
         frame = cv2.resize(frame, (480, 270))                
 
         if debug_mode:
@@ -81,6 +85,9 @@ def main():
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         action, frame = run_prediction(frame, speed)
+
+        # TODO: Add sample time to run write action to board
+        board.write(str(action))
 
         if debug_mode:
             # [DEBUG]:  Show the FPS
