@@ -23,6 +23,8 @@ font_size = 1
 font_thickness = 2
 fps_avg_frame_count = 10
 
+lastSpeed = 0.0
+
 
 def main():
     args = parser.parse_args()
@@ -40,11 +42,12 @@ def main():
     try:
         board = Board(port=_DEFAULT_PORT, debug_mode=debug_mode)
         # Needed to start communication correctly
-        time.sleep(2)
+        time.sleep(4)
     except:
         print("Cannot initialize board")
 
     speed = 0.0
+    lastSpeed = 0.0
 
     # if (img_route):
     #     image = cv2.imread(img_route)
@@ -64,7 +67,13 @@ def main():
 
     while cap.isOpened():
         # TODO: Add sample time to run read speed from board
-        speed = float(board.read())
+        
+        boardReading ="No reading"
+        if boardReading == "No reading":
+            speed = lastSpeed
+        else:
+            speed = float(boardReading)
+            lastSpeed = speed
 
         ret, frame = cap.read()
         if not ret:
@@ -72,7 +81,8 @@ def main():
             break
 
         # TODO: Make resize pair-values into a array/dict of tupples
-        frame = cv2.resize(frame, (480, 270))                
+        # frame = cv2.resize(frame, (480, 270))  
+        frame = cv2.resize(frame, (480*2, 270*2))                              
 
         if debug_mode:
             # [DEBUG]: Flipping for natual mirrror looking
@@ -87,7 +97,7 @@ def main():
         action, frame = run_prediction(frame, speed)
 
         # TODO: Add sample time to run write action to board
-        board.write(str(action))
+        # board.write(str(action))
 
         if debug_mode:
             # [DEBUG]:  Show the FPS
