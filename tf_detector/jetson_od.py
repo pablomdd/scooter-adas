@@ -31,11 +31,12 @@ class JetsonDetector():
     """ 
         Custom object detector class based on CUDA.
         Specify the path (name) of an installed OD model.
-        Set `debug_mode` to add bounding boxes and FPS to the image in `detect()`.
+        Set `debug_mode` to add bounding boxes and FPS to the image passed into `detect()`.
     """
-    def __init__(self, model_path, threshold, debug_mode=False) -> None:
+    def __init__(self, model_path:str, threshold:float, detection_limit:int, debug_mode=False) -> None:
         self.path = model_path
         self.threshold = threshold
+        self.detection_limit = detection_limit
         self.debug_mode = debug_mode
 
         self.net = jetson_inference.detectNet(self.path, self.threshold)
@@ -43,9 +44,9 @@ class JetsonDetector():
     def detect(self, img) -> List:
         """ 
         Runs an object detection inference and returns a list of objects detected.
-        
         """
-        # TODO: Add a limit of detection to add into the list
+        # TODO: Add an allow list of detections to narrow down to people and cars 
+        # TODO: Create and object/class to store detections. Currently they're plain added into a list 
        
         # Convert OpenCV img into CUDA format
         imgCuda = jetson_utils.cudaFromNumpy(img)
@@ -53,10 +54,11 @@ class JetsonDetector():
         detections = self.net.Detect(imgCuda, overlay="OVERLAY_NONE")
 
         objects = []
-
         for d in detections:
-            className = self.net.GetClassDesc(d.ClassID)
+            if len(objects) >= self.detection_limit:
+                break
 
+            className = self.net.GetClassDesc(d.ClassID)
             objects.append([className, d.Confidence])
             
             if self.debug_mode:
@@ -77,12 +79,13 @@ def main():
     cap.set(3, 640)
     cap.set(4, 480)
 
-    detector = JetsonDetector("ssd-mobilenet-v2", 0.5, True)
+    detector = JetsonDetector("ssd-mobilenet-v2", 0.5, 2, True)
     while(True):
         success, img = cap.read()
 
         objects = detector.detect(img)
 
+        print(len(objects))
         print(objects)
 
         cv2.imshow("Image", img)
