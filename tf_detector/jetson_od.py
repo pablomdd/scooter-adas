@@ -1,5 +1,5 @@
 from cv2 import threshold
-from typing import List
+from typing import List, NamedTuple
 import jetson_inference
 import jetson_utils
 import cv2
@@ -27,6 +27,27 @@ _RED = (0, 255, 0)
 _BOX_THICKNESS = 2
 
 
+class Rect(NamedTuple):
+  """A rectangle in 2D space."""
+  left: float
+  top: float
+  right: float
+  bottom: float
+
+
+class Category(NamedTuple):
+  """A result of a classification task."""
+  label: str
+  score: float
+  index: int
+
+
+class Detection(NamedTuple):
+  """A detected object as the result of an ObjectDetector."""
+  bounding_box: Rect
+  categories: List[Category]
+
+
 class JetsonDetector():
     """ 
         Custom object detector class based on CUDA.
@@ -45,8 +66,7 @@ class JetsonDetector():
         """ 
         Runs an object detection inference and returns a list of objects detected.
         """
-        # TODO: Add an allow list of detections to narrow down to people and cars 
-        # TODO: Create and object/class to store detections. Currently they're plain added into a list 
+        # TODO: Add an allow list of detections to narrow down to people and cars
        
         # Convert OpenCV img into CUDA format
         imgCuda = jetson_utils.cudaFromNumpy(img)
@@ -58,12 +78,13 @@ class JetsonDetector():
             if len(objects) >= self.detection_limit:
                 break
 
-            className = self.net.GetClassDesc(d.ClassID)
-            objects.append([className, d.Confidence])
+            class_name = self.net.GetClassDesc(d.ClassID)
+            category = Category(label=class_name, score=d.Confidence, index=d.ClassID)
+            x1, y1, x2, y2 = int(d.Left), int(d.Top), int(d.Right), int(d.Bottom)
+            bounding_box = Rect(x1, y1, x2, y2)
+            objects.append([Detection(bounding_box=bounding_box, categories=[category])])
             
             if self.debug_mode:
-                x1, y1, x2, y2 = int(d.Left), int(d.Top), int(d.Right), int(d.Bottom)
-
                 cv2.rectangle(img, (x1, y1), (x2, y2), _RED, _BOX_THICKNESS)
 
         if self.debug_mode:
@@ -79,7 +100,7 @@ def main():
     cap.set(3, 640)
     cap.set(4, 480)
 
-    detector = JetsonDetector("ssd-mobilenet-v2", 0.5, 2, True)
+    detector = JetsonDetector("ssd-mobilenet-v2", 0.5, 10, True)
     while(True):
         success, img = cap.read()
 
