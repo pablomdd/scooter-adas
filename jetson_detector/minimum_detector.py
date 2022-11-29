@@ -39,7 +39,7 @@ while(True):
     detections = net.Detect(imgCuda)
 
     for d in detections:
-        # print(d)
+        print(d)
         x1, y1, x2, y2 = int(d.Left), int(d.Top), int(d.Right), int(d.Bottom)
 
     img = jetson_utils.cudaToNumpy(imgCuda)

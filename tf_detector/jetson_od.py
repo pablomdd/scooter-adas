@@ -54,10 +54,16 @@ class JetsonDetector():
         Specify the path (name) of an installed OD model.
         Set `debug_mode` to add bounding boxes and FPS to the image passed into `detect()`.
     """
-    def __init__(self, model_path:str, threshold:float, detection_limit:int, debug_mode=False) -> None:
+    def __init__(self,
+            model_path:str,
+            threshold:float,
+            detection_limit:int,
+            allow_list=[],
+            debug_mode=False) -> None:
         self.path = model_path
         self.threshold = threshold
         self.detection_limit = detection_limit
+        self.allow_list = set(allow_list)
         self.debug_mode = debug_mode
 
         self.net = jetson_inference.detectNet(self.path, self.threshold)
@@ -66,8 +72,6 @@ class JetsonDetector():
         """ 
         Runs an object detection inference and returns a list of objects detected.
         """
-        # TODO: Add an allow list of detections to narrow down to people and cars
-       
         # Convert OpenCV img into CUDA format
         imgCuda = jetson_utils.cudaFromNumpy(img)
         
@@ -79,6 +83,11 @@ class JetsonDetector():
                 break
 
             class_name = self.net.GetClassDesc(d.ClassID)
+
+            if(self.allow_list):
+                if not class_name in self.allow_list:
+                    break
+
             category = Category(label=class_name, score=d.Confidence, index=d.ClassID)
             x1, y1, x2, y2 = int(d.Left), int(d.Top), int(d.Right), int(d.Bottom)
             bounding_box = Rect(x1, y1, x2, y2)
@@ -100,7 +109,8 @@ def main():
     cap.set(3, 640)
     cap.set(4, 480)
 
-    detector = JetsonDetector("ssd-mobilenet-v2", 0.5, 10, True)
+    allow_list = ['person', 'car', 'truck', 'motorcycle', 'bicycle']
+    detector = JetsonDetector("ssd-mobilenet-v2", 0.5, 12, allow_list, True)
     while(True):
         success, img = cap.read()
 
@@ -110,8 +120,8 @@ def main():
         print(objects)
 
         cv2.imshow("Image", img)
-        cv2.waitKey(1)
-
+        if cv2.waitKey(1) == ord('q'):
+            break
 
 if __name__ == "__main__":
     main()
