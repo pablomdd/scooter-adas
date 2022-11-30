@@ -78,6 +78,7 @@ class JetsonDetector():
         detections = self.net.Detect(imgCuda, overlay="OVERLAY_NONE")
 
         objects = []
+        boxes = []
         for d in detections:
             if len(objects) >= self.detection_limit:
                 break
@@ -92,7 +93,8 @@ class JetsonDetector():
             x1, y1, x2, y2 = int(d.Left), int(d.Top), int(d.Right), int(d.Bottom)
             bounding_box = Rect(x1, y1, x2, y2)
             objects.append([Detection(bounding_box=bounding_box, categories=[category])])
-            
+            boxes.append(bounding_box)
+
             if self.debug_mode:
                 cv2.rectangle(img, (x1, y1), (x2, y2), _RED, _BOX_THICKNESS)
 
@@ -100,7 +102,7 @@ class JetsonDetector():
             cv2.putText(img, f'FPS: {self.net.GetNetworkFPS()}', (_MARGIN,_MARGIN), cv2.FONT_HERSHEY_PLAIN,
                     _FONT_SIZE, _TEXT_COLOR, _FONT_THICKNESS)
 
-        return objects
+        return objects, boxes
 
 
 
