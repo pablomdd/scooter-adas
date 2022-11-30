@@ -7,6 +7,8 @@ from orchestrator import Orchestrator
 
 _DEFAULT_DEBUG_MODE = False
 _DEFAULT_PORT = "/dev/ttyUSB0"
+_READ_SAMPLE_TIME_SECONDS = 1
+_WRITE_SAMPLE_TIME_SECONDS = 1
 
 # Initialize parser
 parser = argparse.ArgumentParser()
@@ -46,6 +48,7 @@ def main():
         speed = float(args.Speed)
 
     try:
+        print("Starting board communication...")
         board = Board(port=_DEFAULT_PORT, debug_mode=debug_mode)
         # Needed to start communication correctly
         time.sleep(4)
@@ -54,34 +57,27 @@ def main():
 
     speed = 0.0
     lastSpeed = 0.0
-
-    # if (img_route):
-    #     image = cv2.imread(img_route)
-    # else: 
-    #     image = cv2.imread(_IMAGE_FILE)
-    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    # action, img_processed = run_prediction(image, speed)
-
-    # Variables to calculate FPS
-    counter, fps = 0, 0
     read_start_time = time.time()
     write_start_time = time.time()
 
     try:
+        print("Starting camera...")
         cap = cv2.VideoCapture(0)   
+        # TODO: Make resize pair-values into a array/dict of tupples
+        cap.set(3, 640)
+        cap.set(4, 360)
     except:
         print("Cannot initialize video capture")
 
-    cap.set(3, 640)
-    cap.set(4, 360)
-
+    # TODO: Abstract orchestrator setup options into class
+    print("Starting Inferience Orchestrator...")
     allow_list = ['person', 'car', 'truck', 'motorcycle', 'bicycle']
     orchestrator = Orchestrator("ssd-mobilenet-v2", 0.5, 12, allow_list, debug_mode)
 
+    print("Set up ready. Starting main process...")
     while cap.isOpened():
-        # TODO: Add sample time to run read speed from board
-
-        if time.time() - read_start_time > 1:
+        # Step 1: Read speed from board.
+        if time.time() - read_start_time > _READ_SAMPLE_TIME_SECONDS:
             boardReading = board.read()
             read_start_time = time.time()
 
@@ -91,48 +87,29 @@ def main():
             speed = float(boardReading)
             lastSpeed = speed
 
+        # Step 2 Read imager from camera.
         ret, frame = cap.read()
         if not ret:
             print("Cannot receive frame")
             break
 
-        # TODO: Make resize pair-values into a array/dict of tupples
-        # frame = cv2.resize(frame, (480, 270))  
-        # frame = cv2.resize(frame, (480*2, 270*2))                              
-
-        # if debug_mode:
-            # [DEBUG]: Flipping for natual mirrror looking
-            # frame = cv2.flip(frame, 1)
-            # # [DEBUG]:  Calculate the FPS
-            # if counter % fps_avg_frame_count == 0:
-            #     end_time = time.time()
-            #     fps = fps_avg_frame_count / (end_time - start_time)
-            #     start_time = time.time()
-
-        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # Step 3: Run prediction and get preventive action. 
         action, image = orchestrator.get_prediction(frame, speed)
         print("Action:", action)
 
-        # TODO: Add sample time to run write action to board
-        if time.time() - write_start_time > 1:
+        # Step 4: Send preventive action to board.
+        if time.time() - write_start_time > _WRITE_SAMPLE_TIME_SECONDS:
             if action == "None":
                 action = 0
             board.write(str(action))
             write_start_time = time.time()
 
         if debug_mode:
-            # [DEBUG]:  Show the FPS
-            # fps_text = 'FPS = {:.1f}'.format(fps) + " ACTION: " + action
             text_location = (left_margin, row_size)  
-            # cv2.putText(frame, fps_text, text_location, cv2.FONT_HERSHEY_PLAIN,
-            #             font_size, text_color, font_thickness)
-
             action_text = "Speed " + str(speed) + " | ACTION: " + str(action)
 
             cv2.putText(image, action_text, text_location, cv2.FONT_HERSHEY_PLAIN,
                         font_size, text_color, font_thickness)
-
-            # [DEBUG]: Show video
             cv2.imshow('video capture', image)
 
         if cv2.waitKey(1) == ord('q'):
