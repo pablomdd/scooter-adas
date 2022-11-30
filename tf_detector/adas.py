@@ -30,7 +30,6 @@ def main():
 
     debug_mode = _DEFAULT_DEBUG_MODE
     if args.Development:
-        print("entering dev flag conditional")
         if args.Development == "False" or args.Development == "false":
             debug_mode = False
         else:
