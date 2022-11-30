@@ -1,8 +1,9 @@
 import argparse
 import time
 import cv2
-from main import run_prediction
+# from main import run_prediction
 from board_utility import Board
+from orchestrator import Orchestrator
 
 _DEFAULT_DEBUG_MODE = False
 _DEFAULT_PORT = "/dev/ttyUSB0"
@@ -65,10 +66,15 @@ def main():
     except:
         print("Cannot initialize video capture")
 
+    cap.set(3, 640)
+    cap.set(4, 480)
+
+    allow_list = ['person', 'car', 'truck', 'motorcycle', 'bicycle']
+    orchestrator = Orchestrator("ssd-mobilenet-v2", 0.5, 12, allow_list, debug_mode)
+
     while cap.isOpened():
         # TODO: Add sample time to run read speed from board
-        
-        boardReading ="No reading"
+        boardReading = board.read()
         if boardReading == "No reading":
             speed = lastSpeed
         else:
@@ -82,28 +88,33 @@ def main():
 
         # TODO: Make resize pair-values into a array/dict of tupples
         # frame = cv2.resize(frame, (480, 270))  
-        frame = cv2.resize(frame, (480*2, 270*2))                              
+        # frame = cv2.resize(frame, (480*2, 270*2))                              
 
         if debug_mode:
             # [DEBUG]: Flipping for natual mirrror looking
             frame = cv2.flip(frame, 1)
-            # [DEBUG]:  Calculate the FPS
-            if counter % fps_avg_frame_count == 0:
-                end_time = time.time()
-                fps = fps_avg_frame_count / (end_time - start_time)
-                start_time = time.time()
+            # # [DEBUG]:  Calculate the FPS
+            # if counter % fps_avg_frame_count == 0:
+            #     end_time = time.time()
+            #     fps = fps_avg_frame_count / (end_time - start_time)
+            #     start_time = time.time()
 
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        action, frame = run_prediction(frame, speed)
+        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        action = orchestrator.get_prediction(frame, speed)
 
         # TODO: Add sample time to run write action to board
-        # board.write(str(action))
+        board.write(str(action))
 
         if debug_mode:
             # [DEBUG]:  Show the FPS
-            fps_text = 'FPS = {:.1f}'.format(fps) + " ACTION: " + action
+            # fps_text = 'FPS = {:.1f}'.format(fps) + " ACTION: " + action
             text_location = (left_margin, row_size)  
-            cv2.putText(frame, fps_text, text_location, cv2.FONT_HERSHEY_PLAIN,
+            # cv2.putText(frame, fps_text, text_location, cv2.FONT_HERSHEY_PLAIN,
+            #             font_size, text_color, font_thickness)
+
+            action_text = "Speed " + str(speed) + " | ACTION: " + action
+
+            cv2.putText(frame, action_text, text_location, cv2.FONT_HERSHEY_PLAIN,
                         font_size, text_color, font_thickness)
 
             # [DEBUG]: Show video
