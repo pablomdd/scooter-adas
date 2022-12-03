@@ -99,8 +99,6 @@ def main():
 
         # Step 4: Send preventive action to board.
         if time.time() - write_start_time > _WRITE_SAMPLE_TIME_SECONDS:
-            if action == "None":
-                action = 0
             board.write(str(action))
             write_start_time = time.time()
 

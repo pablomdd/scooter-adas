@@ -38,4 +38,4 @@ def make(danger_area: int=1, speed: float=10) -> str:
             return _DESICION_TABLE["5kph"]
         else:
             return _DESICION_TABLE["free"]
-    return "none"
+    return _DESICION_TABLE["free"]

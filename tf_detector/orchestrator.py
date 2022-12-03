@@ -67,7 +67,7 @@ class Orchestrator():
         if obstacle:
             action = decision_making.make(danger_area, speed)
 
-        return action
+        return action, image
 
 
 def main():
