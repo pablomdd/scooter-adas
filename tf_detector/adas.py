@@ -52,8 +52,8 @@ def main():
         board = Board(port=_DEFAULT_PORT, debug_mode=debug_mode)
         # Needed to start communication correctly
         time.sleep(4)
-    except:
-        print("Cannot initialize board")
+    except Exception as e:
+        raise(e)
 
     speed = 0.0
     lastSpeed = 0.0
