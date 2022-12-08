@@ -1,5 +1,6 @@
 import argparse
 import time
+from datetime import datetime
 import cv2
 # from main import run_prediction
 from board_utility import Board
@@ -69,6 +70,9 @@ def main():
     except:
         print("Cannot initialize video capture")
 
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    video_out = cv2.VideoWriter(str(datetime.now()) + '.avi', fourcc, 20.0, (640, 360))
+
     # TODO: Abstract orchestrator setup options into class
     print("Starting Inferience Orchestrator...")
     allow_list = ['person', 'car', 'truck', 'motorcycle', 'bicycle']
@@ -92,6 +96,7 @@ def main():
         if not ret:
             print("Cannot receive frame")
             break
+        video_out.write(frame)
 
         # Step 3: Run prediction and get preventive action. 
         action, image = orchestrator.get_prediction(frame, speed)
