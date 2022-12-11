@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 from typing import List, NamedTuple
-from object_detector import Rect
+from jetson_od import Rect
 
 
 class DangerArea(NamedTuple):
@@ -30,27 +30,34 @@ AREA_1 is the closest to the scooter, thus, the most dangerous if an object dete
 - AREA_3 (5-9] meters 
 """
 
-_AREA_1 = DangerArea(
-        bottom_left=[960-60*3,1080],
-        top_left=[960-50*3,1080-80*3],
-        top_right=[960+50*3,1080-80*3],
-        bottom_right=[960+60*3,1080])
+ratio = 3
+X1 = 110
+X2 = 70
+Y2 = 280
 
-X3 = 834
+_AREA_1 = DangerArea(
+        bottom_left=[(960-X1)/ratio,1080/ratio],
+        top_left=[(960-X2)/ratio,(1080-Y2)/ratio],
+        top_right=[(960+X2)/ratio,(1080-Y2)/ratio],
+        bottom_right=[(960+X1)/ratio,1080/ratio])
+
+X3 = 960-40
+Y3 = 410
 
 _AREA_2 = DangerArea(
-        bottom_left=[960-50*3,1080-80*3],
-        top_left=[X3,1080-80*5-30],
-        top_right=[960+(960-X3),1080-80*5-30],
-        bottom_right=[960+50*3,1080-80*3])
+        bottom_left=[(960-X2)/ratio,(1080-Y2)/ratio],
+        top_left=[(X3)/ratio,(1080-Y3)/ratio],
+        top_right=[((960+(960-X3))/ratio),(1080-Y3)/ratio],
+        bottom_right=[(960+X2)/ratio,(1080-Y2)/ratio])
 
-X4 = 850
+X4 = 960-25
+Y4 = 600
 
 _AREA_3 = DangerArea(
-        bottom_left=[X3,1080-80*5-30],
-        top_left=[X4,520],
-        top_right=[960+(960-X4),520],
-        bottom_right=[960+(960-X3),1080-80*5-30])
+        bottom_left=[X3/ratio,(1080-Y3)/ratio],
+        top_left=[X4/ratio,Y4/ratio],
+        top_right=[(960+(960-X4))/ratio,Y4/ratio],
+        bottom_right=[(960+(960-X3))/ratio,(1080-Y3)/ratio])
 
 
 
@@ -119,7 +126,7 @@ def draw_boxes(boxes:List, image):
 
 
 def main():
-    _IMAGE_FILE = 'line_imgs/1_93m_start.png'
+    _IMAGE_FILE = 'line_imgs/cam_logi_line.jpg'
     image = cv.imread(_IMAGE_FILE)
     # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     

@@ -1,7 +1,15 @@
 import argparse
 import time
+from datetime import datetime
 import cv2
-from main import run_prediction
+# from main import run_prediction
+from board_utility import Board
+from orchestrator import Orchestrator
+
+_DEFAULT_DEBUG_MODE = False
+_DEFAULT_PORT = "/dev/ttyUSB0"
+_READ_SAMPLE_TIME_SECONDS = 1
+_WRITE_SAMPLE_TIME_SECONDS = 1
 
 # Initialize parser
 parser = argparse.ArgumentParser()
@@ -9,7 +17,7 @@ parser = argparse.ArgumentParser()
 # Adding optional argument
 parser.add_argument("-img", "--Image", help = "Image path to run detection")
 parser.add_argument("-s", "--Speed", help = "Scooter speed in Km/h")
-
+parser.add_argument("-dev", "--Development", help = "Set debug mode true o false")
 
 # Visualization parameters
 row_size = 20  # pixels
@@ -22,58 +30,90 @@ fps_avg_frame_count = 10
 
 def main():
     args = parser.parse_args()
-    img_route = ""
-    speed = 0.0
-    
+
+    debug_mode = _DEFAULT_DEBUG_MODE
+    if args.Development:
+        if args.Development == "False" or args.Development == "false":
+            debug_mode = False
+        else:
+            debug_mode = True
+
+    print("*********************************************************")
+    print("Debug mode set to ", debug_mode)
+    print("*********************************************************")
+
     if args.Image:
         img_route = args.Image
 
     if args.Speed:
         speed = float(args.Speed)
 
-    # if (img_route):
-    #     image = cv2.imread(img_route)
-    # else: 
-    #     image = cv2.imread(_IMAGE_FILE)
-    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    # action, img_processed = run_prediction(image, speed)
+    try:
+        print("Starting board communication...")
+        board = Board(port=_DEFAULT_PORT, debug_mode=debug_mode)
+        # Needed to start communication correctly
+        time.sleep(4)
+    except Exception as e:
+        raise(e)
 
-    # Variables to calculate FPS
-    counter, fps = 0, 0
-    start_time = time.time()
+    speed = 0.0
+    lastSpeed = 0.0
+    read_start_time = time.time()
+    write_start_time = time.time()
 
     try:
+        print("Starting camera...")
         cap = cv2.VideoCapture(0)   
+        # TODO: Make resize pair-values into a array/dict of tupples
+        cap.set(3, 640)
+        cap.set(4, 360)
     except:
         print("Cannot initialize video capture")
 
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    video_out = cv2.VideoWriter(str(datetime.now()) + '.avi', fourcc, 20.0, (640, 360))
+
+    # TODO: Abstract orchestrator setup options into class
+    print("Starting Inferience Orchestrator...")
+    allow_list = ['person', 'car', 'truck', 'motorcycle', 'bicycle']
+    orchestrator = Orchestrator("ssd-mobilenet-v2", 0.5, 12, allow_list, debug_mode)
+
+    print("Set up ready. Starting main process...")
     while cap.isOpened():
+        # Step 1: Read speed from board.
+        if time.time() - read_start_time > _READ_SAMPLE_TIME_SECONDS:
+            boardReading = board.read()
+            read_start_time = time.time()
+
+        if boardReading == "No reading":
+            speed = lastSpeed
+        else:
+            speed = float(boardReading)
+            lastSpeed = speed
+
+        # Step 2 Read imager from camera.
         ret, frame = cap.read()
         if not ret:
             print("Cannot receive frame")
             break
+        video_out.write(frame)
 
-        frame = cv2.resize(frame, (480, 270))                
+        # Step 3: Run prediction and get preventive action. 
+        action_str, action_code, image = orchestrator.get_prediction(frame, speed)
+        print("Action:", action_str)
 
-        # [DEBUG]: Flipping for natual mirrror looking
-        frame = cv2.flip(frame, 1)
-        # [DEBUG]:  Calculate the FPS
-        if counter % fps_avg_frame_count == 0:
-            end_time = time.time()
-            fps = fps_avg_frame_count / (end_time - start_time)
-            start_time = time.time()
+        # Step 4: Send preventive action to board.
+        if time.time() - write_start_time > _WRITE_SAMPLE_TIME_SECONDS:
+            board.write(str(action_code))
+            write_start_time = time.time()
 
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        action, frame = run_prediction(frame, speed)
+        if debug_mode:
+            text_location = (left_margin, row_size)  
+            action_text = "Speed " + str(speed) + " | ACTION: " + str(action_str)
 
-        # [DEBUG]:  Show the FPS
-        fps_text = 'FPS = {:.1f}'.format(fps) + " ACTION: " + action
-        text_location = (left_margin, row_size)  
-        cv2.putText(frame, fps_text, text_location, cv2.FONT_HERSHEY_PLAIN,
-                    font_size, text_color, font_thickness)
-
-        # [DEBUG]: Show video
-        cv2.imshow('video capture', frame)
+            cv2.putText(image, action_text, text_location, cv2.FONT_HERSHEY_PLAIN,
+                        font_size, text_color, font_thickness)
+            cv2.imshow('video capture', image)
 
         if cv2.waitKey(1) == ord('q'):
             break
