@@ -19,23 +19,23 @@ def make(danger_area: int=1, speed: float=10) -> str:
     """
     if speed > 15:
         if danger_area == 1:
-            return _DESICION_TABLE["15kph"]
+            return "15kph", _DESICION_TABLE["15kph"]
         elif danger_area == 2:
-            return _DESICION_TABLE["15kph"]
+            return "15kph", _DESICION_TABLE["15kph"]
         else:
-            return _DESICION_TABLE["10kph"]
+            return "10kph", _DESICION_TABLE["10kph"]
     elif speed > 10 and speed <= 15:
         if danger_area == 1:
-            return _DESICION_TABLE["10kph"]
+            return "10kph", _DESICION_TABLE["10kph"]
         elif danger_area == 2:
-            return _DESICION_TABLE["10kph"]
+            return "10kph", _DESICION_TABLE["10kph"]
         else:
-            return _DESICION_TABLE["5kph"]
+            return "10kph", _DESICION_TABLE["5kph"]
     elif speed <= 10:
         if danger_area == 1:
-            return _DESICION_TABLE["brake"]
+            return "brake", _DESICION_TABLE["brake"]
         elif danger_area == 2:
-            return _DESICION_TABLE["5kph"]
+            return "5kph", _DESICION_TABLE["5kph"]
         else:
-            return _DESICION_TABLE["free"]
-    return _DESICION_TABLE["free"]
+            return "free", _DESICION_TABLE["free"]
+    return "free", _DESICION_TABLE["free"]

@@ -63,11 +63,11 @@ class Orchestrator():
                 break
         
         # STEP 3. Get action based on obstacles
-        action = "None"
+        action_str, action_code = "None", -1
         if obstacle:
-            action = decision_making.make(danger_area, speed)
+            action_str, action_code = decision_making.make(danger_area, speed)
 
-        return action, image
+        return action_str, action_code, image
 
 
 def main():

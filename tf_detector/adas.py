@@ -99,17 +99,17 @@ def main():
         video_out.write(frame)
 
         # Step 3: Run prediction and get preventive action. 
-        action, image = orchestrator.get_prediction(frame, speed)
-        print("Action:", action)
+        action_str, action_code, image = orchestrator.get_prediction(frame, speed)
+        print("Action:", action_str)
 
         # Step 4: Send preventive action to board.
         if time.time() - write_start_time > _WRITE_SAMPLE_TIME_SECONDS:
-            board.write(str(action))
+            board.write(str(action_code))
             write_start_time = time.time()
 
         if debug_mode:
             text_location = (left_margin, row_size)  
-            action_text = "Speed " + str(speed) + " | ACTION: " + str(action)
+            action_text = "Speed " + str(speed) + " | ACTION: " + str(action_str)
 
             cv2.putText(image, action_text, text_location, cv2.FONT_HERSHEY_PLAIN,
                         font_size, text_color, font_thickness)
